@@ -26,24 +26,11 @@ class _HomeBodyState extends State<HomeBody> {
                     itemBuilder: (context, index) {
                       image = "";
 
-                      if (dashboardList[index].imageUrl.isNotEmpty) {
-                        try {
-                          var data = json.decode(dashboardList[index].imageUrl);
-                          print(data);
-                          image = data[0]["downloadurl"];
-                        } catch (e) {
-                          image = "";
-                        }
-                        print(image);
-                      }
-                      if (RegExp(r'^(https?:\/\/)?(www\.)?youtube\.com')
-                          .hasMatch(dashboardList[index].imageUrl)) {
-                        image = dashboardList[index].imageUrl;
-                      }
+                      
 
-                      // print("Image: " + image);
+                    
 
-                      return HomePost(image: image, index: index);
+                      return HomePost( index: index);
                     });
               } else {
                 return const Center(
