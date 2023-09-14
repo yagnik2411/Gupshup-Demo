@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-class NormalVideoPlayer extends StatefulWidget {
+class YouTubeLikeVideoPlayer extends StatefulWidget {
   final String videoUrl;
 
-  NormalVideoPlayer({required this.videoUrl, Key? key}) : super(key: key);
+  YouTubeLikeVideoPlayer({required this.videoUrl, Key? key}) : super(key: key);
 
   @override
-  _NormalVideoPlayerState createState() => _NormalVideoPlayerState();
+  _YouTubeLikeVideoPlayerState createState() => _YouTubeLikeVideoPlayerState();
+
+    
+  Future<int> getVideoDurationInSeconds(VideoPlayerController controller) async {
+    await controller.initialize();
+    final duration = controller.value.duration;
+    return duration.inSeconds;
+  }
+  
 }
 
-class _NormalVideoPlayerState extends State<NormalVideoPlayer> {
+class _YouTubeLikeVideoPlayerState extends State<YouTubeLikeVideoPlayer> {
   late VideoPlayerController _controller;
+  bool _isPlaying = true;
 
   @override
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
+        _controller.play();
         setState(() {});
-        // Pause the video initially
-        _controller.pause();
-        _controller.setLooping(true);
-      });
+      })
+      ..setLooping(true);
   }
 
   @override
@@ -31,39 +39,102 @@ class _NormalVideoPlayerState extends State<NormalVideoPlayer> {
     super.dispose();
   }
 
-  void _playPauseVideo() {
-    if (_controller.value.isPlaying) {
-      _controller.pause();
-    } else {
-      _controller.play();
-    }
-    setState(() {});
+  
+  
+
+  Future<int> getVideoDurationInSeconds() async {
+       await _controller.initialize();
+    final duration = _controller.value.duration;
+    return duration.inSeconds;
+  }
+
+  void _togglePlayPause() {
+    setState(() {
+      if (_controller.value.isPlaying) {
+        _controller.pause();
+        _isPlaying = false;
+      } else {
+        _controller.play();
+        _isPlaying = true;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        AspectRatio(
-          aspectRatio: _controller.value.aspectRatio,
-          child: VideoPlayer(_controller),
-        ),
-        SizedBox(height: 10.0), // Add some spacing
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            IconButton(
-              splashColor: Colors.blueAccent,
-              splashRadius: 20,
-              icon: Icon(
-                _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                color: Colors.blue,
+    return Center(
+      child: _controller.value.isInitialized
+          ? AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: <Widget>[
+                  VideoPlayer(_controller),
+                  _TimelineBar(controller: _controller),
+                  _ControlsOverlay(
+                    isPlaying: _isPlaying,
+                    onPlayPause: _togglePlayPause,
+                  ),
+                ],
               ),
-              onPressed: _playPauseVideo,
-            ),
-          ],
-        ),
-      ],
+            )
+          : CircularProgressIndicator(),
     );
   }
 }
+
+class _TimelineBar extends StatelessWidget {
+  final VideoPlayerController controller;
+
+  _TimelineBar({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return VideoProgressIndicator(
+      controller,
+      allowScrubbing: true,
+      colors: VideoProgressColors(
+        playedColor: Colors.blue,
+        bufferedColor: Colors.grey,
+        backgroundColor: Colors.white,
+      ),
+    );
+  }
+}
+
+class _ControlsOverlay extends StatelessWidget {
+  final bool isPlaying;
+  final VoidCallback onPlayPause;
+
+  _ControlsOverlay({
+    required this.isPlaying,
+    required this.onPlayPause,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      opacity: isPlaying ? 0.0 : 1.0,
+      duration: Duration(milliseconds: 300),
+      child: Container(
+        color: Colors.black.withOpacity(0.5),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            IconButton(
+              onPressed: onPlayPause,
+              icon: Icon(
+                isPlaying ? Icons.pause : Icons.play_arrow,
+                size: 32,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+ 
+
+

@@ -4,6 +4,7 @@ import 'package:api_test/Services/videoplayer/youtube.videoplayer.dart';
 import 'package:api_test/model/dashboard_model.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'dart:math';
 
 class HomePost extends StatelessWidget {
   final int index;
@@ -12,7 +13,7 @@ class HomePost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String image = determineImage();
+    List<String> image = determineImage();
 
     return Center(
       child: Container(
@@ -43,21 +44,31 @@ class HomePost extends StatelessWidget {
     );
   }
 
-  String determineImage() {
+  List<String> determineImage() {
     String imageUrl = dashboardList[index].imageUrl;
+    List<String> downloadUrls = [];
 
     if (imageUrl.isEmpty) {
-      return "";
+      return downloadUrls;
     }
 
     try {
       var data = json.decode(imageUrl);
-      return data[0]["downloadurl"];
+
+      for (var item in data) {
+        if (item["downloadurl"] != null) {
+          downloadUrls.add(item["downloadurl"]);
+        }
+      }
+
+      return downloadUrls;
     } catch (e) {
       if (RegExp(r'^(https?:\/\/)?(www\.)?youtube\.com').hasMatch(imageUrl)) {
-        return imageUrl;
+        // Handle YouTube URL case, return imageUrl in a list
+        return [imageUrl];
       } else {
-        return "";
+        // Handle other cases where imageUrl is not in JSON format
+        return downloadUrls;
       }
     }
   }
@@ -77,20 +88,50 @@ class HomePost extends StatelessWidget {
     );
   }
 
-  Widget buildMediaContent(String imageUrl) {
-    if (imageUrl.isNotEmpty) {
+ Widget buildMediaContent(List<String> imageUrls) {
+    if (imageUrls.isEmpty) {
+      return const Center(child: Text("No Media"));
+    } else if (imageUrls.length == 1) {
+      // Return the single widget directly
+      final imageUrl = imageUrls[0];
       if (linkCheck(imageUrl) == "Image") {
         return Image.network(imageUrl, fit: BoxFit.cover);
       } else if (linkCheck(imageUrl) == "Youtube") {
         return YTPlayer().videoPlayer(imageUrl);
       } else if (linkCheck(imageUrl) == "Video") {
-        return NormalVideoPlayer(videoUrl: imageUrl);
+        return YouTubeLikeVideoPlayer(videoUrl: imageUrl);
       }
+    } else {
+      // Return a carousel with multiple widgets
+      List<Widget> mediaWidgets = [];
+
+      for (String imageUrl in imageUrls) {
+        if (linkCheck(imageUrl) == "Image") {
+          mediaWidgets.add(Image.network(imageUrl, fit: BoxFit.cover));
+        } else if (linkCheck(imageUrl) == "Youtube") {
+          mediaWidgets.add(YTPlayer().videoPlayer(imageUrl));
+        } else if (linkCheck(imageUrl) == "Video") {
+          mediaWidgets.add(YouTubeLikeVideoPlayer(videoUrl: imageUrl));
+        }
+      }
+
+      
+
+      mediaWidgets = mediaWidgets.toSet().toList(); 
+
+      return CarouselSlider(
+        items: mediaWidgets,
+        options: CarouselOptions(
+          autoPlay: true,
+          enlargeCenterPage: true,
+          enableInfiniteScroll: false,
+          aspectRatio: 1 , 
+        ),
+      );
     }
-    return const Center(child: Text("No Image"));
+
+    return const Center(child: Text("No Media"));
   }
-
-
 
   Widget buildActionButtons() {
     return Row(
@@ -125,7 +166,8 @@ class HomePost extends StatelessWidget {
       return "Youtube";
     } else if (RegExp(r'\.mp4$').hasMatch(link)) {
       return "Video";
-    } else if (RegExp(r'\.(jpeg|jpg|png)$').hasMatch(link)) {
+    } else if (RegExp(r'\.(jpeg|jpg|png)$').hasMatch(link) ||
+        RegExp(r'^https:\/\/images\.unsplash\.com\/.*$').hasMatch(link)) {
       return "Image";
     } else {
       return "Text";
