@@ -4,9 +4,9 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 class YTPlayer {
   Widget videoPlayer(String videoUrl) {
-    print("video url" + videoUrl);
+  
     String videoId = videoUrl.split('/').last.split('?').first;
-    print("video id" + videoId);
+   
     YoutubePlayerController controller = YoutubePlayerController(
       initialVideoId: videoId,
       flags: const YoutubePlayerFlags(

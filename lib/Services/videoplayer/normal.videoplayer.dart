@@ -9,13 +9,12 @@ class YouTubeLikeVideoPlayer extends StatefulWidget {
   @override
   _YouTubeLikeVideoPlayerState createState() => _YouTubeLikeVideoPlayerState();
 
-    
-  Future<int> getVideoDurationInSeconds(VideoPlayerController controller) async {
+  Future<int> getVideoDurationInSeconds(
+      VideoPlayerController controller) async {
     await controller.initialize();
     final duration = controller.value.duration;
     return duration.inSeconds;
   }
-  
 }
 
 class _YouTubeLikeVideoPlayerState extends State<YouTubeLikeVideoPlayer> {
@@ -39,11 +38,8 @@ class _YouTubeLikeVideoPlayerState extends State<YouTubeLikeVideoPlayer> {
     super.dispose();
   }
 
-  
-  
-
   Future<int> getVideoDurationInSeconds() async {
-       await _controller.initialize();
+    await _controller.initialize();
     final duration = _controller.value.duration;
     return duration.inSeconds;
   }
@@ -135,6 +131,3 @@ class _ControlsOverlay extends StatelessWidget {
     );
   }
 }
- 
-
-

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:api_test/Services/videoplayer/normal.videoplayer.dart';
 import 'package:api_test/Services/videoplayer/youtube.videoplayer.dart';
@@ -6,8 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'dart:math';
 
+import 'package:video_player/video_player.dart';
+
 class HomePost extends StatelessWidget {
   final int index;
+  List<int?> autoPlayDurations = [];
+  int currentItem = 0;
 
   HomePost({Key? key, required this.index}) : super(key: key);
 
@@ -88,7 +93,7 @@ class HomePost extends StatelessWidget {
     );
   }
 
- Widget buildMediaContent(List<String> imageUrls) {
+  Widget buildMediaContent(List<String> imageUrls) {
     if (imageUrls.isEmpty) {
       return const Center(child: Text("No Media"));
     } else if (imageUrls.length == 1) {
@@ -103,34 +108,90 @@ class HomePost extends StatelessWidget {
       }
     } else {
       // Return a carousel with multiple widgets
-      List<Widget> mediaWidgets = [];
+      return FutureBuilder<void>(
+        future: fetchVideoDurations(imageUrls),
+        builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+                child: Container(
+                    height: 20,
+                    width: 20,
+                    child:
+                        CircularProgressIndicator())); // Show a loading indicator while fetching durations
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            CarouselController _controller = CarouselController();
+            return CarouselSlider.builder(
+              itemCount: imageUrls.length,
+              carouselController: _controller,
+              itemBuilder: (BuildContext context, int index, int realIndex) {
+                // Create the media widgets here based on mediaUrls
+                final mediaUrl = imageUrls[index];
+                final linkType = linkCheck(mediaUrl);
 
-      for (String imageUrl in imageUrls) {
-        if (linkCheck(imageUrl) == "Image") {
-          mediaWidgets.add(Image.network(imageUrl, fit: BoxFit.cover));
-        } else if (linkCheck(imageUrl) == "Youtube") {
-          mediaWidgets.add(YTPlayer().videoPlayer(imageUrl));
-        } else if (linkCheck(imageUrl) == "Video") {
-          mediaWidgets.add(YouTubeLikeVideoPlayer(videoUrl: imageUrl));
-        }
-      }
+                if (linkType == "Image") {
+                  return Image.network(mediaUrl, fit: BoxFit.contain);
+                } else if (linkType == "Video") {
+                  final player = YouTubeLikeVideoPlayer(videoUrl: mediaUrl);
+                  return player;
+                } else if (linkType == "Youtube") {
+                  final player = YTPlayer();
+                  return player.videoPlayer(mediaUrl);
+                }
 
-      
-
-      mediaWidgets = mediaWidgets.toSet().toList(); 
-
-      return CarouselSlider(
-        items: mediaWidgets,
-        options: CarouselOptions(
-          autoPlay: true,
-          enlargeCenterPage: true,
-          enableInfiniteScroll: false,
-          aspectRatio: 1 , 
-        ),
+                return Container(); // Return an empty container if unsupported media
+              },
+              options: CarouselOptions(
+                  autoPlay: true,
+                  autoPlayInterval: Duration(
+                    seconds: autoPlayDurations[currentItem] as int,
+                  ),
+                  enlargeCenterPage: true,
+                  enableInfiniteScroll: false,
+                  onPageChanged: (index, _) {
+                    _controller
+                        .stopAutoPlay(); // Stop auto-play when page changes
+                    Timer(Duration(seconds: autoPlayDurations[index] as int),
+                        () {
+                      currentItem = index ; // Increment currentItem
+                      _controller.animateToPage(index ); // Go to next page
+                      _controller
+                          .startAutoPlay(); // Restart auto-play after delay
+                    });
+                  }),
+            );
+          }
+        },
       );
     }
 
     return const Center(child: Text("No Media"));
+  }
+
+  Future<void> fetchVideoDurations(List<String> mediaUrls) async {
+    for (int i = 0; i < mediaUrls.length; i++) {
+      final mediaUrl = mediaUrls[i];
+      final linkType = linkCheck(mediaUrl);
+
+      if (linkType == "Image") {
+        autoPlayDurations.add(1);
+        // Handle image duration if needed
+      } else if (linkType == "Video") {
+        final player = YouTubeLikeVideoPlayer(videoUrl: mediaUrl);
+        final VideoPlayerController controller =
+            VideoPlayerController.network(mediaUrl);
+        final duration = await player.getVideoDurationInSeconds(controller);
+
+        autoPlayDurations.add(duration - 1);
+        // Handle video duration if needed
+      } else if (linkType == "Youtube") {
+        final player = YTPlayer();
+        final duration = await player.getVideoDuration(mediaUrl);
+        autoPlayDurations.add(duration);
+        // Handle YouTube video duration if needed
+      }
+    }
   }
 
   Widget buildActionButtons() {
