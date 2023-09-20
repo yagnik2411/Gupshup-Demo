@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
             return Scaffold(
               
               appBar: AppBar(),
-              bottomNavigationBar: HomeBottom(),
+              bottomNavigationBar: const HomeBottom(),
               body: HomeBody(),
             );
           } else {

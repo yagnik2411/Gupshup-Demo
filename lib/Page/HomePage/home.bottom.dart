@@ -1,7 +1,5 @@
-import 'package:api_test/Services/share_preferences/localstorage.dart';
 import 'package:api_test/Utils/route.dart';
 import 'package:api_test/Utils/toast.dart';
-import 'package:api_test/model/usermodel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -24,29 +22,29 @@ class HomeBottom extends StatelessWidget {
               onPressed: () {
                 toMassage(msg: "Myfeed");
               },
-              icon: Icon(Icons.feed)),
+              icon: const Icon(Icons.feed)),
           IconButton(
               color: Colors.blue, onPressed: () {
                 toMassage(msg: "Chat is not available");
-              }, icon: Icon(Icons.chat)),
+              }, icon: const Icon(Icons.chat)),
           IconButton(
               color: Colors.blue,
               onPressed: () {
                 toMassage(msg: "Groups is not available");
               },
-              icon: Icon(CupertinoIcons.group)),
+              icon: const Icon(CupertinoIcons.group)),
           IconButton(
               color: Colors.blue,
               onPressed: () {
                  toMassage(msg: "Albums is not available");
               },
-              icon: Icon(Icons.album_outlined)),
+              icon: const Icon(Icons.album_outlined)),
           IconButton(
               color: Colors.blue,
               onPressed: () {
                 Navigator.pushReplacementNamed(context, MyRoute().LoginPageRoute);
               },
-              icon: Icon(CupertinoIcons.person))
+              icon: const Icon(CupertinoIcons.person))
         ],
       ),
     );

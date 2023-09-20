@@ -4,7 +4,7 @@ import 'package:video_player/video_player.dart';
 class YouTubeLikeVideoPlayer extends StatefulWidget {
   final String videoUrl;
 
-  YouTubeLikeVideoPlayer({required this.videoUrl, Key? key}) : super(key: key);
+  const YouTubeLikeVideoPlayer({required this.videoUrl, Key? key}) : super(key: key);
 
   @override
   _YouTubeLikeVideoPlayerState createState() => _YouTubeLikeVideoPlayerState();
@@ -26,7 +26,7 @@ class _YouTubeLikeVideoPlayerState extends State<YouTubeLikeVideoPlayer> {
     super.initState();
     _controller = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
-        _controller.play();
+        _controller.pause();
         setState(() {});
       })
       ..setLooping(true);
@@ -74,7 +74,7 @@ class _YouTubeLikeVideoPlayerState extends State<YouTubeLikeVideoPlayer> {
                 ],
               ),
             )
-          : CircularProgressIndicator(),
+          : const CircularProgressIndicator(),
     );
   }
 }
@@ -82,14 +82,14 @@ class _YouTubeLikeVideoPlayerState extends State<YouTubeLikeVideoPlayer> {
 class _TimelineBar extends StatelessWidget {
   final VideoPlayerController controller;
 
-  _TimelineBar({required this.controller});
+  const _TimelineBar({required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return VideoProgressIndicator(
       controller,
       allowScrubbing: true,
-      colors: VideoProgressColors(
+      colors: const VideoProgressColors(
         playedColor: Colors.blue,
         bufferedColor: Colors.grey,
         backgroundColor: Colors.white,
@@ -102,7 +102,7 @@ class _ControlsOverlay extends StatelessWidget {
   final bool isPlaying;
   final VoidCallback onPlayPause;
 
-  _ControlsOverlay({
+  const _ControlsOverlay({
     required this.isPlaying,
     required this.onPlayPause,
   });
@@ -111,7 +111,7 @@ class _ControlsOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedOpacity(
       opacity: isPlaying ? 0.0 : 1.0,
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
       child: Container(
         color: Colors.black.withOpacity(0.5),
         child: Column(

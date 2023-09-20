@@ -10,12 +10,12 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: LoginBottom(),
+      bottomNavigationBar: const LoginBottom(),
       body: Center(
         child: Container(
           color: Colors.white,
           height: 50,
-          margin: EdgeInsetsDirectional.only(bottom: 10, start: 5, end: 5),
+          margin: const EdgeInsetsDirectional.only(bottom: 10, start: 5, end: 5),
           width: MediaQuery.of(context).size.width/2,
           child: ElevatedButton(
             style: ButtonStyle(

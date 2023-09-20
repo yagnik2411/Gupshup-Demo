@@ -5,7 +5,6 @@ import 'package:api_test/Services/videoplayer/youtube.videoplayer.dart';
 import 'package:api_test/model/dashboard_model.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'dart:math';
 
 import 'package:video_player/video_player.dart';
 
@@ -112,12 +111,16 @@ class HomePost extends StatelessWidget {
         future: fetchVideoDurations(imageUrls),
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-                child: Container(
-                    height: 20,
-                    width: 20,
-                    child:
-                        CircularProgressIndicator())); // Show a loading indicator while fetching durations
+            return const Center(
+                child: SizedBox(
+                    height: 345,
+                    width: 345,
+                    child: Center(
+                      child: SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: CircularProgressIndicator()),
+                    ))); // Show a loading indicator while fetching durations
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
@@ -155,9 +158,9 @@ class HomePost extends StatelessWidget {
                     Timer(Duration(seconds: autoPlayDurations[index] as int),
                         () {
                       currentItem = index ; // Increment currentItem
-                      _controller.animateToPage(index ); // Go to next page
-                      _controller
-                          .startAutoPlay(); // Restart auto-play after delay
+                      _controller.jumpToPage(index + 1); // Go to next page
+                      // _controller
+                      //     .startAutoPlay(); // Restart auto-play after delay
                     });
                   }),
             );
@@ -178,12 +181,14 @@ class HomePost extends StatelessWidget {
         autoPlayDurations.add(1);
         // Handle image duration if needed
       } else if (linkType == "Video") {
-        final player = YouTubeLikeVideoPlayer(videoUrl: mediaUrl);
+        YouTubeLikeVideoPlayer? player = YouTubeLikeVideoPlayer(videoUrl: mediaUrl);
         final VideoPlayerController controller =
             VideoPlayerController.network(mediaUrl);
         final duration = await player.getVideoDurationInSeconds(controller);
 
-        autoPlayDurations.add(duration - 1);
+        autoPlayDurations.add(duration);
+        controller.dispose();
+        player = null;
         // Handle video duration if needed
       } else if (linkType == "Youtube") {
         final player = YTPlayer();
